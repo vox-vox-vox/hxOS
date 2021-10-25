@@ -1,3 +1,7 @@
+---
+typora-copy-images-to: upload
+---
+
 # process
 
  # 进程
@@ -37,7 +41,7 @@
 
 内核根据父进程复制一个子进程，父进程和子进程的PCB相同
 
-<img src="/Users/huxiao/Library/Application Support/typora-user-images/image-20211025152033355.png" alt="image-20211025152033355" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gvrv2kttmmj30q40iujss.jpg" alt="image-20211025152033355" style="zoom:50%;" />
 
 `pid = fork()` 如果是子进程，pid=0，如果是父进程，pid=子进程的pid
 
@@ -81,7 +85,7 @@ pid_t waitpid(pid_t pid, int *status, int options);
 
 管道（pipe）是一种最基本的IPC方式
 
-<img src="/Users/huxiao/Library/Application Support/typora-user-images/image-20211025155554330.png" alt="image-20211025155554330" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gvrv2dby3kj315e0e2wff.jpg" alt="image-20211025155554330" style="zoom:50%;" />
 
 创建管道：
 
@@ -155,7 +159,7 @@ int pipe(int filedes[2]);
 
 ## 基本信号介绍
 
-<img src="/Users/huxiao/Library/Application Support/typora-user-images/image-20211025162537493.png" alt="image-20211025162537493" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gvrv26p7irj30zc0aomze.jpg" alt="image-20211025162537493" style="zoom:50%;" />
 
 常用的：
 
@@ -183,7 +187,7 @@ int pipe(int filedes[2]);
 
 信号阻塞机制如下：
 
-<img src="/Users/huxiao/Library/Application Support/typora-user-images/image-20211025192655795.png" alt="image-20211025192655795" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gvrv20qai3j310o0cmmxv.jpg" alt="image-20211025192655795" style="zoom:50%;" />
 
 - block 类似掩码，代表进程能够阻塞的信号集
 - pending 代表正在阻塞的信号，如果信号解除阻塞，就将其置0
@@ -197,21 +201,21 @@ int pipe(int filedes[2]);
 
 - 下列函数可以改变信号集：
 
-<img src="/Users/huxiao/Library/Application Support/typora-user-images/image-20211025193730518.png" alt="image-20211025193730518" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gvrv1ui9clj311807amy4.jpg" alt="image-20211025193730518" style="zoom:50%;" />
 
 - `sigprocmask`可以读取或更改进程的信号集
 
-<img src="/Users/huxiao/Library/Application Support/typora-user-images/image-20211025194751321.png" alt="image-20211025194751321" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gvrv1qtxllj310u03c3yo.jpg" alt="image-20211025194751321" style="zoom:50%;" />
 
 ​		`set`非空，将当前进程信号集设置为set；`oset`非空，保存当前进程信号集到oset；`set` `oset` 均非空，备份oset并设置为set
 
 ​		`how`可选：
 
-<img src="/Users/huxiao/Library/Application Support/typora-user-images/image-20211025195558887.png" alt="image-20211025195558887" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gvrv1mmk5oj311607g75z.jpg" alt="image-20211025195558887" style="zoom:50%;" />
 
 - `sigpending`读取当前进程的pending信号集，通过set传出
 
-  <img src="/Users/huxiao/Library/Application Support/typora-user-images/image-20211025195953961.png" alt="image-20211025195953961" style="zoom:50%;" />
+  <img src="https://tva1.sinaimg.cn/large/008i3skNly1gvrv1crzyaj311603mglo.jpg" alt="image-20211025195953961" style="zoom:50%;" />
 
   
 
@@ -230,13 +234,13 @@ int pipe(int filedes[2]);
 3. 内核决定将控制递交给注册的`sighandler()`，它采用和main函数不同的堆栈空间，是两个独立的控制流程
 4. `sighandler()`结束，再次返回内核，然后返回main
 
-<img src="/Users/huxiao/Library/Application Support/typora-user-images/image-20211025201358459.png" alt="image-20211025201358459" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gvrv14sum0j30vc0iodhl.jpg" alt="image-20211025201358459" style="zoom:50%;" />
 
 ### sigaction
 
 `sigaction`可以读取和修改指定信号的行为，主要用来注册`sighandler()`
 
-<img src="/Users/huxiao/Library/Application Support/typora-user-images/image-20211025202230321.png" alt="image-20211025202230321" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gvrv2xxaxrj310402aaa8.jpg" alt="image-20211025202230321" style="zoom:50%;" />
 
 与`sigprocmask`相似，`act`非空，将当前进程信号行为设定为act；`oact`非空，保存当前进程信号行为设定为oact；`oact` `act` 均非空，备份oact并设置为act
 
@@ -263,7 +267,7 @@ struct sigaction{
 
 操控共享资源的函数不应设为可重入，否则会出现并发问题：
 
-<img src="/Users/huxiao/Library/Application Support/typora-user-images/image-20211025204130889.png" alt="image-20211025204130889" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gvrv0xuj9hj316g0q4jtg.jpg" alt="image-20211025204130889" style="zoom:50%;" />
 
 ### sig_atomic_t与volatile
 
