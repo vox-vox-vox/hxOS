@@ -13,7 +13,7 @@ void printids (const char *s){
 	pthread_t	tid;// thread id
 	pid = getpid();
 	tid= pthread_self();
-	//printf("%s pid %u tid %u (0x%x)\n",s,(unsigned int)pid,(unsigned int)tid,(unsigned int)tid);
+//	printf("%s pid %u tid %u (0x%x)\n",s,(unsigned int)pid,(unsigned int)tid,(unsigned int)tid);
 	printf("%s pid %u  \n",s,(unsigned int)pid);
 }
 
