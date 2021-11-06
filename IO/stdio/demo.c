@@ -6,32 +6,37 @@ void errorDemo(void);
 void byteIODemo(void);
 void moveCurDemo(void);
 void dumpFileDemo(void);
+void scanfDemo(void);
 
 int main(void){
     //errorDemo();
     //byteIODemo();
     //moveCurDemo();
-    dumpFileDemo();
+    //dumpFileDemo();
+	scanfDemo();
     return 0;
 }
-
+/*
+IO 操作
+IO 缓冲区
+*/
 /*
 fopen       FILE *fopen(const char *path, const char *mode);
             input: path 路径名 ; mode 操作方式
-            output:
+            output: 成功返回文件指针，出错返回NULL并设置errno
             打开文件
 fclose      int flose(FILE *fp);
             input:
             output:
             关闭文件
-
-    printf
-    scanf
-    stdin
-    stdout
-
 */
-
+/*
+终端：terminal，对我们来说就是 显示器+键盘
+键盘，显示器等设备也可以像普通文件一样被打开、读、写、关闭
+程序启动时会自动把终端设备赋给3个FILE* 指针：stdin、stdout、stderror
+stdin对应了键盘文件
+stdout对应了显示器文件
+*/
 
 /*
 errno 与 perror 函数
@@ -58,6 +63,8 @@ void errorDemo(void){
 }
 
 /*
+字符操作
+
 fgetc       int fgetc(FILE *stream);
             input: FILE 文件的指针，也可称为流指针
             output: 成功时返回读到的字节，出错/读到文件末尾时返回EOF。本来应该返回unsigned char，但是由于函数原型中返回是int，所以要将char转为int再返回。
@@ -108,6 +115,8 @@ void byteIODemo(void){
 
 
 /*
+文件指针
+
 fseek      	int fseek(FILE *stream, long offset, int whence);
             input: FILE 文件的指针，也可称为流指针 ; offset 移动量，负值代表向前、正值代表向后 ;whence SEEK_END ; SEEK_CUR ; SEEK_END 
             output: 成功时返回0，错误返回-1并设置errno
@@ -136,6 +145,8 @@ void moveCurDemo(void){
 
 
 /*
+字符串处理
+
 fgets       char *fgets(char *s,int size,FILE *stream);
             input: s 缓冲区首地址 ; size 缓冲区长度 ; FILE 文件的指针，也可称为流指针
             output: 成功时s指向哪返回的指针就指向哪，出错/读到文件末尾时返回NULL
@@ -178,7 +189,44 @@ void dumpFileDemo(void){
 }
 
 
+/*
+格式化IO 格式化字符串<=====>参数
 
+printf		int printf(const char *format, ...);
+			将输入的参数通过format格式化，打印到标准输出（屏幕）
+scanf		int scanf(const char *format, ...);
+			从标准输入读字符，按格式化format转换输入的字符，并赋给后面的参数，后面的参数必须传地址
+*/
+// 利用scanf实现简单的计算器
+void scanfDemo(void){
+	double sum,v;
+	sum = 0;
+	while(scanf("%lf",&v)==1){
+		printf("\t%.2f\n",sum+=v);
+	}
+	return ;
+}
+
+
+/*
+用户程序----(C标准库IO函数)----C标准库IO缓冲区-----(内核)-----内存
+c标准库的IO缓冲区通常在用户空间，直接在用户空间读数据比进内核读数据要快得多。
+fgetc一次从IO缓冲区读一个字符，内核一次从内存中加载1k数据，第二次fgetc就直接从缓冲区读而不是通过内核
+fputc一次向IO缓冲区写一个字符，如果IO缓冲区写满了，fputc就通过系统调用把IO缓冲区中的数据传给内核，内核最终把数据写回磁盘
+将IO缓冲区的数据立刻传给内核，让内核写回设备，称为Flush操作
+
+1. 内核和磁盘不在一起嘛
+2. 什么叫传给内核，内核再写回设备，这居然是两个过程
+3. 用户空间/内核空间，用户程序/内核，C标准IO缓冲区/磁盘 之间的关系
+4. 标准输入输出 和 终端设备有什么关系？ 
+
+C标准库的IO缓冲区有三种不同类型：
+全缓冲：缓冲区写满了就写回内核(flush)。常规文件通常是全缓冲的
+行缓冲：用户程序中有换行符就把这一行写回内核/缓冲区满了就写回内核(flush)。对应终端设备时通常是行缓冲
+无缓冲：每次调用库函数都要经过系统调用写回内核(flush)。标准错误是无缓冲的，产生的错误信息可以尽快输出到设备
+
+行缓冲有3种情况会flush，分别是: 1.有换行符'\n' 2.IO缓冲区写满 3.用户程序调用库函数从无缓冲文件读取/从行缓冲文件读取且这次读操作会引发系统调用从内核中取数据
+*/
 
 
 
