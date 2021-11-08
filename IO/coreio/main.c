@@ -47,13 +47,17 @@ void openDemon(void){
 
 /*
 read		ssize_t read(int fd, void *buf,size_t count);
-			input: fd 文件描述符 ; buf 缓冲区 ; count 读取的字节数
-			output: 成功时返回读取的字节数，出错时返回-1 并设置errno，达到文件末尾返回0
+			input: fd 文件描述符 ; buf 缓冲区 ; count 请求读取的字节数
+			output: 成功时返回实际读取的字节数，出错时返回-1 并设置errno，达到文件末尾返回0
 			从打开的设备或文件中读取数据，读上来的数据保存在buf(有可能是C的IO缓冲区)中
+			一些情况下，实际读取的字节数可能会小于请求读取的字节数，如：
+			1. 读常规文件时提前到达末尾。比如count=100，实际只剩30个字节没有读，则返回30，下一次返回为0。
+			2. 从终端设备读，通常遇到换行符就提前返回
+			3. 网络IO读取
 write		ssize_t write(int fd, const void *buf, size_t count);
-			input: fd 文件描述符 ; buf 缓冲区 ; count 读取的字节数
-			output: 成功时返回写入的字节数，出错时返回-1 并设置errno，达到文件末尾返回0
-			
+			input: fd 文件描述符 ; buf 缓冲区 ; count 写入的字节数
+			output: 成功时返回实际写入的字节数，出错时返回-1 并设置errno，达到文件末尾返回0
+			从buf向打开的文件或设备fd中写数据
 			
 */
 // 阻塞读终端，输入超过10个字节时terminal会将剩下的字节视为输入命令
