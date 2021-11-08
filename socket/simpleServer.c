@@ -6,42 +6,70 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <ctype.h>
+#include "warp.h"
+/*
+socket地址
+	socketAPI是一层抽象的网络编程接口，适用于各种底层协议，如IPV4、IPV6、UNIX Domain Socket等，但是各种网络协议的地址不相同:
+	IPV4:IPV4地址用 sockaddr_in 表示，包括16位端口号和32位IP地址
+	IPV6:IPV6地址用 sockaddr_in6 表示，包括16端口号、128IP地址和一些控制字段
+	UNIX Domain Socket:用sockaddr_un结构体表示
+虽然地址不同，但也有一部分相同。各种socket地址结构体的开头是相同的，前16位是长度，后16位表示整个地址类型。		
+这样，为了编程的通用性，socket地址统一都用 struct sockaddr* 类型表示，只需要取得sockaddr结构体中的首地址，可以根据地址类型字段确定sockaddr中的内容。
 
+*/
+
+/*
+socket		int socket(int family,int type,int protocol);
+			input:  
+			output: 成功返回一个网络文件描述符
+			打开一个网络通讯端口。成功的话，就像open()一样返回一个文件描述符
+bind		int bind(int sockfd, const struct sockaddr *myaddr, socklen_t addrlen);
+			input:sockfd 网络通讯文件描述符；myaddr 地址,sockaddr类型,不同协议各不相同
+			output:成功返回0，失败返回-1
+			将参数sockfd和myaddr绑定在一起，使sockfd这个网络文件描述符监听myaddr所描述的地址和端口号
+listen		int listen(int sockfd, int backlog);
+			input:
+			output:成功返回0，失败返回-1
+			声明sockfd处于监听状态，允许有backlog个客户端处于连接状态，收到更多的连接请求则忽略
+accept		int accept(int sockfd, struct sockaddr *cliaddr, socklen_t *addrlen);
+			input: sockfd 网络文件描述符；cliaddr 传出参数,返回客户端地址和端口号；addrlen 传入传出参数,传入cliaddr长度,传出客户端地址结构体实际长度，传NULL说明不关系客户端地址
+			output: 网络文件描述符，相当于一个可以读写的文件
+			服务器调用accept()接受连接。如果此时还没有客户端的连接请求，就阻塞直至有客户端连接上来。
+*/
 #define MAXLINE 80
 #define SERV_PORT 8000
-
 int main(void){
-	struct sockaddr_in servaddr, cliaddr;
+	struct sockaddr_in servaddr, cliaddr;// IPV4 类型地址
 	socklen_t cliaddr_len;
 	int listenfd, connfd;
 	char buf[MAXLINE];
 	char str[INET_ADDRSTRLEN];
 	int i,n;
 
-    listenfd = socket(AF_INET, SOCK_STREAM ,0);
+    listenfd = Socket(AF_INET, SOCK_STREAM ,0);// 打开网络文件，返回listenfd文件描述符
 
-    bzero(&servaddr, sizeof(servaddr));
-    servaddr.sin_family=AF_INET;
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port=htons(SERV_PORT);
+    bzero(&servaddr, sizeof(servaddr));// 清零
+    servaddr.sin_family=AF_INET;// 设置地址类型为AF_INET
+    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);// 网络地址为INADDR_ANY 表示本地的任意IP地址
+    servaddr.sin_port=htons(SERV_PORT);// 设置端口号
 
-    bind(listenfd,(struct sockaddr *)&servaddr, sizeof(servaddr));
+    Bind(listenfd,(struct sockaddr *)&servaddr, sizeof(servaddr));// 将网络文件描述符和sockaddr绑定在一起
 
-    listen(listenfd,20);
+    Listen(listenfd,20);
 
     printf("Accepting connections ...\n");
 
-    while(1){
-        cliaddr_len = sizeof(cliaddr);
-        connfd = accept(listenfd,(struct sockaddr *)&cliaddr,&cliaddr_len);
+    while(1){	// 死循环，每次循环处理一个客户端连接
+        cliaddr_len = sizeof(cliaddr);// cliaddr_len是传入传出参数，每次accept()前要重新赋值
+        connfd = Accept(listenfd,(struct sockaddr *)&cliaddr,&cliaddr_len);
 
-        n=read(connfd,buf,MAXLINE);
+        n=Read(connfd,buf,MAXLINE);
 
         printf("received from %s at PORT %d\n", inet_ntop(AF_INET, &cliaddr.sin_addr,str,sizeof(str)) , ntohs(cliaddr.sin_port));
         for(i=0;i<n;i++){
             buf[i]=toupper(buf[i]);
-            write(connfd,buf,n);
-            close(connfd);
-        }
+		}
+        Write(connfd,buf,n);
+        Close(connfd);
     }
 }
