@@ -25,7 +25,7 @@ open:	int open(const char *pathname, int flags, mode_t mode);
 		input: 	pathname:文件路径; flag:文件读写方式; mode:文件权限(可选)
 		output:	文件描述符
 close:	int close(int fd);
-		inout:	fd:要关闭的文件描述符
+		input:	fd:要关闭的文件描述符
 */
 
 // open 函数的测试

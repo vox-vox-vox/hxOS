@@ -171,17 +171,18 @@ static ssize_t my_read(int fd,char *ptr){
 			read_ptr = read_buf;
 		}
 	}
-	read_cnt --;
+	read_cnt--;
 	*ptr = *read_ptr++;
 	return 1;
 }
 /*
 常见的应用层协议都是带有可变长字段的，字段之间用换行的比用'\0'的更常见，如HTTP协议。可变长字段用readn来读很不方便，为此实现一个类似fgets的 Readline
+最多可读取maxlen次，一次可读取MAX_LINE个字符，共可最多读取 maxlen*MAX_LINE 个字符
 */
-ssize_t ReadLine(int fd, void *vptr, size_t maxlen){
+ssize_t ReadLine(int fd, void *buff, size_t maxlen){
 	ssize_t n,rc;
 	char c,*ptr;
-	ptr = vptr;
+	ptr = buff;
 	for(n=1;n<maxlen;n++){
 		if((rc = my_read(fd,&c))==1){
 			*ptr++ =c;

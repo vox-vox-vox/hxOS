@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <ctype.h>
+#include <signal.h>
 #include "../warp.h"
 /*
 socket地址
@@ -36,24 +37,49 @@ accept		int accept(int sockfd, struct sockaddr *cliaddr, socklen_t *addrlen);
 			output: 网络文件描述符，相当于一个可以读写的文件
 			服务器调用accept()接受连接。如果此时还没有客户端的连接请求，就阻塞直至有客户端连接上来。
 */
-#define MAXLINE 80
-#define SERV_PORT 8000
+#define MAXLINE 100
+#define SERV_PORT 8022
+
+void childHandler() {
+    int stat_val;
+    wait(&stat_val); // 清理子进程
+    printf("child exited with code %d\n", stat_val);
+    return;
+}
+
+/*
+ 提高server容错
+ server断开，client未断开时，TCP连接还没有完全中断，此时无法重启server，会出现端口占用错误
+ 解决方法见 opt=1 处
+*/
 int main(void){
+    // 设置信号处理函数
+    struct sigaction newact,oldact;
+    newact.sa_handler=childHandler;
+    sigemptyset(&newact.sa_mask);//清空newact的阻塞信号掩码
+    newact.sa_flags=0;
+    sigaction(SIGCHLD,&newact,&oldact);//为SIGCHLD配置自定义action
+
+    // 设置网络处理参数
 	struct sockaddr_in servaddr, cliaddr;// IPV4 类型地址
 	socklen_t cliaddr_len;
-	int listenfd, connfd;
+	int listenfd, connfd;// 两个重要的套接字
 	char buf[MAXLINE];
 	char str[INET_ADDRSTRLEN];
 	int i,n;
 
-    listenfd = Socket(AF_INET, SOCK_STREAM ,0);// 打开网络文件，返回listenfd文件描述符
+    listenfd = Socket(AF_INET, SOCK_STREAM ,0);// 打开网络文件，返回listenfd
+
+    int opt=1;
+    setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&opt,sizeof(opt) );
 
     bzero(&servaddr, sizeof(servaddr));// 清零
     servaddr.sin_family=AF_INET;// 设置地址类型为AF_INET
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);// 网络地址为INADDR_ANY 表示本地的任意IP地址
     servaddr.sin_port=htons(SERV_PORT);// 设置端口号
 
-    Bind(listenfd,(struct sockaddr *)&servaddr, sizeof(servaddr));// 将网络文件描述符和sockaddr绑定在一起
+
+    Bind(listenfd,(struct sockaddr *)&servaddr, sizeof(servaddr));// 将listenfd和servaddr （{INADDR_ANY:SERV_PORT}） 绑定在一起
 
     Listen(listenfd,20);
 
@@ -62,14 +88,44 @@ int main(void){
     while(1){	// 死循环，每次循环处理一个客户端连接
         cliaddr_len = sizeof(cliaddr);// cliaddr_len是传入传出参数，每次accept()前要重新赋值
         connfd = Accept(listenfd,(struct sockaddr *)&cliaddr,&cliaddr_len);
-
-        n=Read(connfd,buf,MAXLINE);
-
-        printf("received from %s at PORT %d\n", inet_ntop(AF_INET, &cliaddr.sin_addr,str,sizeof(str)) , ntohs(cliaddr.sin_port));
-        for(i=0;i<n;i++){
-            buf[i]=toupper(buf[i]);
-		}
-        Write(connfd,buf,n);
-        Close(connfd);
+        n = fork();// fork出子进程，专门用来处理网络请求
+        if(n==-1){
+            perror("error to fork");
+            exit(1);
+        }else if(n==0){//子进程
+            Close(listenfd);// 为什么子进程要关掉listenfd？不用就要关
+            while(1){
+                n=ReadLine(connfd,buf,1000);
+                if(n==0){
+                    printf("the other side has been closed\n");
+                    break;
+                }
+                printf("received from %s at PORT %d\n", inet_ntop(AF_INET, &cliaddr.sin_addr,str,sizeof(str)) , ntohs(cliaddr.sin_port));
+                for(i=0;i<n;i++){
+                    buf[i]=toupper(buf[i]);
+                }
+                Write(connfd,buf,n);
+            }
+            Close(connfd);
+            exit(0);
+        }else{ //父进程
+            Close(connfd);// 为什么父进程要关闭connfd，不用就要关
+        }
     }
+    sigaction(SIGCHLD,&oldact,NULL);
+    return 1;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

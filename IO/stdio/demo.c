@@ -126,7 +126,7 @@ fseek      	int fseek(FILE *stream, long offset, int whence);
 ftell		int ftell(FILE *stream);
 			input: FILE 文件的指针
 			output: 返回当前读写位置，错误返回-1并设置errno
-void		rewind(FILE *stream);
+rewind		rewind(FILE *stream);
 			重新将读写位置移到开头
 */
 void moveCurDemo(void){
