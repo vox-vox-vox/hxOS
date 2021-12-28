@@ -7,13 +7,15 @@ void byteIODemo(void);
 void moveCurDemo(void);
 void dumpFileDemo(void);
 void scanfDemo(void);
+void testInput(void);
 
 int main(void){
     //errorDemo();
     //byteIODemo();
     //moveCurDemo();
     //dumpFileDemo();
-	scanfDemo();
+	//scanfDemo();
+	testInput();
     return 0;
 }
 /*
@@ -115,7 +117,7 @@ void byteIODemo(void){
 
 
 /*
-文件指针
+移动读写位置
 
 fseek      	int fseek(FILE *stream, long offset, int whence);
             input: FILE 文件的指针，也可称为流指针 ; offset 移动量，负值代表向前、正值代表向后 ;whence SEEK_END ; SEEK_CUR ; SEEK_END 
@@ -124,7 +126,7 @@ fseek      	int fseek(FILE *stream, long offset, int whence);
 ftell		int ftell(FILE *stream);
 			input: FILE 文件的指针
 			output: 返回当前读写位置，错误返回-1并设置errno
-void		rewind(FILE *stream);
+rewind		rewind(FILE *stream);
 			重新将读写位置移到开头
 */
 void moveCurDemo(void){
@@ -187,6 +189,14 @@ void dumpFileDemo(void){
     fclose(fp2);
     return;
 }
+// 如果stream选择stdin，在没有输入任何东西的时候会阻塞吗？
+void testInput(void){
+	char temp[100];
+	fgets(temp,100,stdin);
+	printf("%s\n",temp);
+	return;
+}
+
 
 
 /*
